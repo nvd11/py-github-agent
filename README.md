@@ -1,2 +1,2 @@
-# python-template
-Template python project which enabled pytest and dubug configuration in vscode
+# PyML
+ML (Pytorch) learning
