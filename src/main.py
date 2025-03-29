@@ -1,1 +1,1 @@
-print("hello")
+import src.configs.config

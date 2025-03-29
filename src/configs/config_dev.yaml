@@ -1,0 +1,9 @@
+gcp:
+  project: jason-hsbc
+  region: europe-west2
+
+
+
+modeling:
+  model1:
+    table1: DS1.tb_model1_house_price
