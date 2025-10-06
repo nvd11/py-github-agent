@@ -1,1 +1,1 @@
-test.py
+import src.configs.config                                                                                       
