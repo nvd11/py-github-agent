@@ -1,0 +1,163 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{},"name":"py-api-gateway","namespace":"default"},"spec":{"gatewayClassName":"gke-l7-global-external-managed","listeners":[{"allowedRoutes":{"namespaces":{"from":"Same"}},"name":"http","port":80,"protocol":"HTTP"},{"allowedRoutes":{"namespaces":{"from":"Same"}},"name":"https","port":443,"protocol":"HTTPS","tls":{"mode":"Terminate","options":{"networking.gke.io/pre-shared-certs":"gke-gateway-ssl-cert"}}}]}}
+    networking.gke.io/addresses: /projects/912156613264/global/addresses/gkegw1-bu0s-default-py-api-gateway-jfly4jdo622c
+    networking.gke.io/backend-services: /projects/912156613264/global/backendServices/gkegw1-bu0s-default-chat-ui-frontend-service-80-jz47bc4m8afy,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-chat-ui-iap-service-80-o0lp0rslehjs,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-clusterip-chat-api-svc-8000-q8r361qihspy,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-clusterip-py-api-svc-8000-iwtsiatbjn23,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-clusterip-py-webhook-svc-8000-f2ps5m9m69rr,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-gw-serve404-80-8zjp3d8cqfsu,
+      /projects/912156613264/global/backendServices/gkegw1-bu0s-default-gw-serve500-80-iuaooq9vq8f6
+    networking.gke.io/firewalls: /projects/912156613264/global/firewalls/gkegw1-bu0s-l7-tf-vpc0-global
+    networking.gke.io/forwarding-rules: /projects/912156613264/global/forwardingRules/gkegw1-bu0s-default-py-api-gateway-2ndb5mh4y7f6,
+      /projects/912156613264/global/forwardingRules/gkegw1-bu0s-default-py-api-gateway-e6c3tpani22a
+    networking.gke.io/health-checks: /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-chat-ui-frontend-service-80-jz47bc4m8afy,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-chat-ui-iap-service-80-o0lp0rslehjs,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-clusterip-chat-api-svc-8000-q8r361qihspy,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-clusterip-py-api-svc-8000-iwtsiatbjn23,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-clusterip-py-webhook-svc-8000-f2ps5m9m69rr,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-gw-serve404-80-8zjp3d8cqfsu,
+      /projects/912156613264/global/healthChecks/gkegw1-bu0s-default-gw-serve500-80-iuaooq9vq8f6
+    networking.gke.io/last-reconcile-time: "2025-11-27T18:59:51Z"
+    networking.gke.io/lb-route-extensions: ""
+    networking.gke.io/lb-traffic-extensions: ""
+    networking.gke.io/ssl-certificates: ""
+    networking.gke.io/target-http-proxies: /projects/912156613264/global/targetHttpProxies/gkegw1-bu0s-default-py-api-gateway-rrnx141i3brm
+    networking.gke.io/target-https-proxies: /projects/912156613264/global/targetHttpsProxies/gkegw1-bu0s-default-py-api-gateway-6bdwvn1zx5um
+    networking.gke.io/url-maps: /projects/912156613264/global/urlMaps/gkegw1-bu0s-default-py-api-gateway-6bdwvn1zx5um,
+      /projects/912156613264/global/urlMaps/gkegw1-bu0s-default-py-api-gateway-rrnx141i3brm
+    networking.gke.io/wasm-plugin-versions: ""
+    networking.gke.io/wasm-plugins: ""
+  creationTimestamp: "2025-11-15T04:00:31Z"
+  finalizers:
+  - gateway.finalizer.networking.gke.io
+  generation: 4
+  name: py-api-gateway
+  namespace: default
+  resourceVersion: "1764269992262735023"
+  uid: 10e7e5d2-30bd-41fb-800f-9587bbbbb535
+spec:
+  gatewayClassName: gke-l7-global-external-managed
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: http
+    port: 80
+    protocol: HTTP
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: https
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      options:
+        networking.gke.io/pre-shared-certs: gke-gateway-ssl-cert
+status:
+  addresses:
+  - type: IPAddress
+    value: 34.111.35.228
+  conditions:
+  - lastTransitionTime: "2025-11-15T15:50:46Z"
+    message: The OSS Gateway API has deprecated this condition, do not depend on it.
+    observedGeneration: 4
+    reason: Scheduled
+    status: "True"
+    type: Scheduled
+  - lastTransitionTime: "2025-11-15T15:50:46Z"
+    message: ""
+    observedGeneration: 4
+    reason: Accepted
+    status: "True"
+    type: Accepted
+  - lastTransitionTime: "2025-11-27T18:59:52Z"
+    message: ""
+    observedGeneration: 4
+    reason: Programmed
+    status: "True"
+    type: Programmed
+  - lastTransitionTime: "2025-11-27T18:59:52Z"
+    message: The OSS Gateway API has altered the "Ready" condition semantics and reserved
+      it for future use.  GKE Gateway will stop emitting it in a future update, use
+      "Programmed" instead.
+    observedGeneration: 4
+    reason: Ready
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2025-11-27T18:59:52Z"
+    message: ""
+    observedGeneration: 4
+    reason: Healthy
+    status: "True"
+    type: networking.gke.io/GatewayHealthy
+  listeners:
+  - attachedRoutes: 1
+    conditions:
+    - lastTransitionTime: "2025-11-15T15:50:46Z"
+      message: ""
+      observedGeneration: 4
+      reason: ResolvedRefs
+      status: "True"
+      type: ResolvedRefs
+    - lastTransitionTime: "2025-11-15T15:50:46Z"
+      message: ""
+      observedGeneration: 4
+      reason: Accepted
+      status: "True"
+      type: Accepted
+    - lastTransitionTime: "2025-11-27T18:59:52Z"
+      message: ""
+      observedGeneration: 4
+      reason: Programmed
+      status: "True"
+      type: Programmed
+    - lastTransitionTime: "2025-11-27T18:59:52Z"
+      message: The OSS Gateway API has altered the "Ready" condition semantics and
+        reserved it for future use.  GKE Gateway will stop emitting it in a future
+        update, use "Programmed" instead.
+      observedGeneration: 4
+      reason: Ready
+      status: "True"
+      type: Ready
+    name: http
+    supportedKinds:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+  - attachedRoutes: 1
+    conditions:
+    - lastTransitionTime: "2025-11-15T15:50:46Z"
+      message: ""
+      observedGeneration: 4
+      reason: ResolvedRefs
+      status: "True"
+      type: ResolvedRefs
+    - lastTransitionTime: "2025-11-15T15:50:46Z"
+      message: ""
+      observedGeneration: 4
+      reason: Accepted
+      status: "True"
+      type: Accepted
+    - lastTransitionTime: "2025-11-27T18:59:52Z"
+      message: ""
+      observedGeneration: 4
+      reason: Programmed
+      status: "True"
+      type: Programmed
+    - lastTransitionTime: "2025-11-27T18:59:52Z"
+      message: The OSS Gateway API has altered the "Ready" condition semantics and
+        reserved it for future use.  GKE Gateway will stop emitting it in a future
+        update, use "Programmed" instead.
+      observedGeneration: 4
+      reason: Ready
+      status: "True"
+      type: Ready
+    name: https
+    supportedKinds:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute

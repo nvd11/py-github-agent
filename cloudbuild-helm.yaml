@@ -1,0 +1,98 @@
+# This Cloud Build file builds a Docker image and deploys it to GKE using Helm.
+# It incorporates best practices like automatic semantic versioning and substitution variables.
+
+steps:
+  # 1. Calculate the next semantic version tag based on tags in Artifact Registry.
+  - id: "Calculate New Tag"
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -e
+        # Fetch the latest semantic version tag (e.g., 0.0.1) from the registry.
+        # We get all tags and then use grep to filter, as the --filter flag can be unreliable in Cloud Build.
+        LATEST_TAG=$$(gcloud artifacts docker tags list europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME} --format="value(TAG)" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -n 1 || true)
+        
+        if [ -z "$$LATEST_TAG" ]; then
+          NEW_TAG="0.0.1"
+        else
+          # Increment the patch version.
+          MAJOR=$$(echo $$LATEST_TAG | cut -d. -f1)
+          MINOR=$$(echo $$LATEST_TAG | cut -d. -f2)
+          PATCH=$$(echo $$LATEST_TAG | cut -d. -f3)
+          NEW_PATCH=$$((PATCH + 1))
+          NEW_TAG="$$MAJOR.$$MINOR.$$NEW_PATCH"
+        fi
+        
+        echo "Calculated new tag: $$NEW_TAG"
+        # Pass the new tag to subsequent steps.
+        echo $$NEW_TAG > /workspace/tag.txt
+
+  # 2. Build the Docker image with the new tag.
+  - id: "Build Docker Image"
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -e
+        NEW_TAG=$$(cat /workspace/tag.txt)
+        echo "--- Building Docker image with tag: $$NEW_TAG ---"
+        docker build -t "europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}:$$NEW_TAG" -f Dockerfile .
+    waitFor: ["Calculate New Tag"]
+
+  # 3. Push the container image to Google Artifact Registry.
+  - id: "Push Docker Image to GAR"
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -e
+        NEW_TAG=$$(cat /workspace/tag.txt)
+        docker push "europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}:$$NEW_TAG"
+    waitFor: ["Build Docker Image"]
+
+  # 4. Deploy to GKE using Helm.
+  - id: "Deploy to GKE"
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -ex
+        # Download and install Helm
+        HELM_VERSION=v3.15.2
+        curl -sSL https://get.helm.sh/helm-$${HELM_VERSION}-linux-amd64.tar.gz -o helm.tar.gz
+        tar -zxvf helm.tar.gz
+        
+        NEW_TAG=$$(cat /workspace/tag.txt)
+        echo "--- Deploying to GKE with Helm, using image tag: $$NEW_TAG ---"
+        
+        # Get GKE credentials
+        gcloud container clusters get-credentials ${_CLUSTER_NAME} --region ${_CLUSTER_LOCATION} --project $PROJECT_ID
+        
+        # Run Helm deployment
+        ./linux-amd64/helm upgrade --install ${_APP_NAME} ./helm \
+          --set image.repository="europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}" \
+          --set image.tag=$$NEW_TAG \
+          --set service.appName=${_APP_NAME} \
+          --namespace default
+    waitFor: ["Push Docker Image to GAR"]
+
+# Specifies the GCS bucket for storing build logs.
+logsBucket: gs://jason-hsbc_cloudbuild/logs/
+
+# Configuration for the build.
+options:
+  logging: GCS_ONLY
+
+# Specifies the service account to run the build with for security.
+serviceAccount: "projects/jason-hsbc/serviceAccounts/terraform@jason-hsbc.iam.gserviceaccount.com"
+
+# Substitution variables to make the pipeline reusable.
+substitutions:
+  _APP_NAME: python-template-app
+  _CLUSTER_NAME: my-cluster2
+  _CLUSTER_LOCATION: europe-west2

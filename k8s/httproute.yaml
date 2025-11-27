@@ -1,0 +1,136 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"py-api-route","namespace":"default"},"spec":{"hostnames":["jpgcp.shop","gateway.jpgcp.cloud"],"parentRefs":[{"name":"py-api-gateway"}],"rules":[{"backendRefs":[{"name":"clusterip-chat-api-svc","port":8000}],"matches":[{"path":{"type":"PathPrefix","value":"/chat-api-svc"}}]},{"backendRefs":[{"name":"chat-ui-frontend-service","port":80}],"filters":[{"type":"URLRewrite","urlRewrite":{"path":{"replacePrefixMatch":"/","type":"ReplacePrefixMatch"}}}],"matches":[{"path":{"type":"PathPrefix","value":"/chat"}}]},{"backendRefs":[{"name":"chat-ui-iap-service","port":80}],"filters":[{"type":"URLRewrite","urlRewrite":{"path":{"replacePrefixMatch":"/","type":"ReplacePrefixMatch"}}}],"matches":[{"path":{"type":"PathPrefix","value":"/chat-iap"}}]},{"backendRefs":[{"name":"clusterip-py-api-svc","port":8000}],"filters":[{"type":"URLRewrite","urlRewrite":{"path":{"replacePrefixMatch":"/","type":"ReplacePrefixMatch"}}}],"matches":[{"path":{"type":"PathPrefix","value":"/pyapi"}}]},{"backendRefs":[{"name":"clusterip-py-webhook-svc","port":8000}],"filters":[{"type":"URLRewrite","urlRewrite":{"path":{"replacePrefixMatch":"/","type":"ReplacePrefixMatch"}}}],"matches":[{"path":{"type":"PathPrefix","value":"/webhook"}}]}]}}
+  creationTimestamp: "2025-11-15T04:00:31Z"
+  generation: 7
+  name: py-api-route
+  namespace: default
+  resourceVersion: "1764270729424799022"
+  uid: 5c4b32d2-520a-4143-89df-866d0a684857
+spec:
+  hostnames:
+  - jpgcp.shop
+  - gateway.jpgcp.cloud
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: py-api-gateway
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: clusterip-python-template-app
+      port: 8000
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /python-template-app
+
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: clusterip-chat-api-svc
+      port: 8000
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /chat-api-svc
+
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: chat-ui-frontend-service
+      port: 80
+      weight: 1
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replacePrefixMatch: /
+          type: ReplacePrefixMatch
+    matches:
+    - path:
+        type: PathPrefix
+        value: /chat
+
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: chat-ui-iap-service
+      port: 80
+      weight: 1
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replacePrefixMatch: /
+          type: ReplacePrefixMatch
+    matches:
+    - path:
+        type: PathPrefix
+        value: /chat-iap
+
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: clusterip-py-api-svc
+      port: 8000
+      weight: 1
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replacePrefixMatch: /
+          type: ReplacePrefixMatch
+    matches:
+    - path:
+        type: PathPrefix
+        value: /pyapi
+
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: clusterip-py-webhook-svc
+      port: 8000
+      weight: 1
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replacePrefixMatch: /
+          type: ReplacePrefixMatch
+    matches:
+    - path:
+        type: PathPrefix
+        value: /webhook
+status:
+  parents:
+  - conditions:
+    - lastTransitionTime: "2025-11-18T15:52:14Z"
+      message: ""
+      observedGeneration: 7
+      reason: ResolvedRefs
+      status: "True"
+      type: ResolvedRefs
+    - lastTransitionTime: "2025-11-18T15:52:14Z"
+      message: ""
+      observedGeneration: 7
+      reason: Accepted
+      status: "True"
+      type: Accepted
+    - lastTransitionTime: "2025-11-27T19:12:05Z"
+      message: ""
+      observedGeneration: 7
+      reason: ReconciliationSucceeded
+      status: "True"
+      type: Reconciled
+    controllerName: networking.gke.io/gateway
+    parentRef:
+      group: gateway.networking.k8s.io
+      kind: Gateway
+      name: py-api-gateway
