@@ -10,15 +10,8 @@ deepseek:
   base-url: "https://api.deepseek.com"
   
 database:
-  host: "127.0.0.1" # Connect to the Cloud SQL Auth Proxy sidecar
+  host: "34.39.2.90" # Connect to the cloud DB for local development
   port: 5432
   dbname: "default_db"
   user: "nvd11"
   password_env_var: "DB_PASSWORD"
-  base-url: "https://api.deepseek.com"
-
-
-
-modeling:
-  model1:
-    table1: DS1.tb_model1_house_price

@@ -1,0 +1,61 @@
+steps:
+  # Access the secret and write it to a .env file
+  - id: create .env file
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        echo "GEMINI_API_KEY=$(gcloud secrets versions access latest --secret=gemini-api-key)" > .env
+       
+
+
+
+  # Build the container image (it will now include the .env file)
+  - id: build docker image
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}"
+      - "-f"
+      - "Dockerfile"
+      - "."
+    waitFor:
+      - "create .env file"
+
+  # Push the container image to Google Container Registry
+  - id: upload docker image to GAR
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}"
+
+  # Deploy the service to Cloud Run
+  - id: deploy image to cloud run
+    name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "${_APP_NAME}"
+      - "--image=europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}:${_APP_TAG}"
+      - "--port=${_PORT}"
+      - "--platform=managed"
+      - "--region=europe-west2"
+      - "--no-allow-unauthenticated"
+      - "--service-account=vm-common@jason-hsbc.iam.gserviceaccount.com"
+      - "--key=projects/$PROJECT_ID/locations/europe-west2/keyRings/mykeyring/cryptoKeys/mycmek"
+      - "--set-env-vars=APP_ENVIRONMENT=${_APP_ENV}"
+      - "--vpc-connector=${_VPC_CONNECTOR}"
+      - "--vpc-egress=all"
+
+logsBucket: gs://jason-hsbc_cloudbuild/logs/
+options: # https://cloud.google.com/cloud-build/docs/build-config#options
+  logging: GCS_ONLY # or CLOUD_LOGGING_ONLY https://cloud.google.com/cloud-build/docs/build-config#logging
+serviceAccount: "projects/jason-hsbc/serviceAccounts/terraform@jason-hsbc.iam.gserviceaccount.com"
+substitutions:
+  _APP_NAME: python-template-app
+  _APP_TAG: latest
+  _APP_ENV: prod
+  _VPC_CONNECTOR: vpc-con
+  _PORT: "8000"

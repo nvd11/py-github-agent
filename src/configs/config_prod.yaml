@@ -2,9 +2,11 @@ gcp:
   project: jason-hsbc
   region: europe-west2
 
-proxy:
-  http: http://10.0.1.223:7890
-  https: http://10.0.1.223:7890
+# No proxy in production
+# proxy:
+#   http: http://10.0.1.223:7890
+#   https: http://10.0.1.223:7890
+
 deepseek:
   api-key: "DEEPSEEK_API_KEY"
   base-url: "https://api.deepseek.com"
@@ -12,13 +14,6 @@ deepseek:
 database:
   host: "127.0.0.1" # Connect to the Cloud SQL Auth Proxy sidecar
   port: 5432
-  dbname: "default_db"
+  dbname: "chatai_prod"
   user: "nvd11"
   password_env_var: "DB_PASSWORD"
-  base-url: "https://api.deepseek.com"
-
-
-
-modeling:
-  model1:
-    table1: DS1.tb_model1_house_price
