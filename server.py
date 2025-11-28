@@ -1,11 +1,10 @@
 import src.configs.config
+from src.configs.log_config import setup_logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import os
-
-# Import the routers
-# from src.routers import chat_router, user_router, conversation_router
+import sys
 
 # Import the routers
 # from src.routers import chat_router, user_router, conversation_router
@@ -61,6 +60,14 @@ def endpoint1(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
+    
+    # Debug: Print current environment
+    current_env = os.getenv("APP_ENVIRONMENT", "unknown")
+    print(f"DEBUG: Server starting. APP_ENVIRONMENT={current_env}", file=sys.stderr)
+    
+    # Force re-setup logging just to be sure
+    setup_logging(current_env)
+    
     logger.info("Starting Uvicorn server...")
     # Disable Uvicorn's default logging to let Loguru take full control
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_config=None)
