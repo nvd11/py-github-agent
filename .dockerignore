@@ -1,0 +1,10 @@
+.env
+.git
+.gitignore
+.vscode
+__pycache__
+*.pyc
+logs/
+test/
+helm/
+k8s/
