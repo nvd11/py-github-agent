@@ -93,6 +93,6 @@ serviceAccount: "projects/jason-hsbc/serviceAccounts/terraform@jason-hsbc.iam.gs
 
 # Substitution variables to make the pipeline reusable.
 substitutions:
-  _APP_NAME: python-template-app
+  _APP_NAME: py-github-agent
   _CLUSTER_NAME: my-cluster2
   _CLUSTER_LOCATION: europe-west2

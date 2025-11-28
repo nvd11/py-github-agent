@@ -54,7 +54,7 @@ options: # https://cloud.google.com/cloud-build/docs/build-config#options
   logging: GCS_ONLY # or CLOUD_LOGGING_ONLY https://cloud.google.com/cloud-build/docs/build-config#logging
 serviceAccount: "projects/jason-hsbc/serviceAccounts/terraform@jason-hsbc.iam.gserviceaccount.com"
 substitutions:
-  _APP_NAME: python-template-app
+  _APP_NAME: py-github-agent
   _APP_TAG: latest
   _APP_ENV: prod
   _VPC_CONNECTOR: vpc-con
