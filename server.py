@@ -1,8 +1,11 @@
-import src.configs.config  
-from fastapi import FastAPI
+import src.configs.config
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import os
+
+# Import the routers
+# from src.routers import chat_router, user_router, conversation_router
 
 # Import the routers
 # from src.routers import chat_router, user_router, conversation_router
@@ -35,7 +38,26 @@ app.add_middleware(
 def read_root():
     """A simple root endpoint to confirm the server is running."""
     # logger.debug("Root endpoint was hit.")
-    return {"message": "Welcome to the demo API. See /docs for details."}
+    return {"message": "Welcome to the demo API. See /docs for details.this version after 0.0.6"}
+
+
+@app.get("/getcallinfo")
+def endpoint1(request: Request):
+    client_ip = getattr(request, "client", None)
+    client_ip = client_ip.host if client_ip else None
+    headers = dict(request.headers)
+    data = {
+        "endpoint": "webhook/getcallinfo",
+        "client_ip": client_ip,
+        "host": headers.get("host"),
+        "method": request.method,
+        "path": request.url.path,
+        "query": request.url.query,
+        "headers": headers,
+    }
+    logger.info(f"Request data: {data}")
+    return data
+
 
 if __name__ == "__main__":
     import uvicorn
