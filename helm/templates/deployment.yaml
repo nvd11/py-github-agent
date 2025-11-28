@@ -27,6 +27,8 @@ spec:
           env:
             - name: APP_ENVIRONMENT
               value: {{ .Values.appEnv | quote }}
+            - name: GEMINI_API_KEY
+              value: {{ .Values.geminiApiKey | quote }}
           {{- if .Values.secretName }}
           envFrom:
             - secretRef:

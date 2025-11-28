@@ -69,6 +69,9 @@ steps:
         
         NEW_TAG=$$(cat /workspace/tag.txt)
         echo "--- Deploying to GKE with Helm, using image tag: $$NEW_TAG ---"
+
+        # Get Gemini API Key from Secret Manager
+        GEMINI_API_KEY=$$(gcloud secrets versions access latest --secret=gemini-api-key --project=jason-hsbc)
         
         # Get GKE credentials
         gcloud container clusters get-credentials ${_CLUSTER_NAME} --region ${_CLUSTER_LOCATION} --project $PROJECT_ID
@@ -78,6 +81,7 @@ steps:
           --set image.repository="europe-west2-docker.pkg.dev/$PROJECT_ID/my-docker-repo/${_APP_NAME}" \
           --set image.tag=$$NEW_TAG \
           --set service.appName=${_APP_NAME} \
+          --set-string geminiApiKey="$$GEMINI_API_KEY" \
           --namespace default
     waitFor: ["Push Docker Image to GAR"]
 
