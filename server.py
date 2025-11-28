@@ -8,12 +8,12 @@ import os
 # from src.routers import chat_router, user_router, conversation_router
 
 # Get root_path from an environment variable. Defaults to "/python-template-app" if not set.
-root_path = os.getenv("ROOT_PATH", "/python-template-app")
+root_path = os.getenv("ROOT_PATH", "/py-github-agent")
 
 # Initialize the FastAPI app
 app = FastAPI(
-    title="python-template Streaming API",
-    description="A simple API to demonstrate web app",
+    title="py-github-agent API",
+    description="ai agent for checking github info",
     version="1.0.0",
     root_path=root_path,
 )
