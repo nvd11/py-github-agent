@@ -1,5 +1,5 @@
 
-# import src.configs.config
+import src.configs.config
 from src.llm.custom_gemini import CustomGeminiChatModel
 from src.services.llm_service import LLMService
 from loguru import logger

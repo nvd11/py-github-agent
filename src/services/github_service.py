@@ -1,0 +1,101 @@
+
+import src.configs.config
+from loguru import logger
+
+import os
+import aiohttp
+from loguru import logger
+from typing import List, Dict, Any
+
+
+
+class GitHubService:
+    """
+    一个用于与 GitHub API 交互的服务类。
+    """
+    BASE_URL = "https://api.github.com"
+
+    def __init__(self,_token: str = os.getenv("GITHUB_TOKEN")):
+        self.token = _token
+        if not self.token:
+            logger.warning("GITHUB_TOKEN not found in environment variables. API requests will be unauthenticated and subject to lower rate limits.")
+        
+        self.headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        if self.token:
+            self.headers["Authorization"] = f"token {self.token}"
+
+    async def get_pull_requests(
+        self, repo_owner: str, repo_name: str, state: str = "open"
+    ) -> List[Dict[str, Any]]:
+        """
+        异步获取指定 GitHub 仓库的 Pull Request 列表。
+
+        :param repo_owner: 仓库所有者
+        :param repo_name: 仓库名称
+        :param state: PR 的状态 ('open', 'closed', 'all')
+        :return: 一个包含 PR 关键信息的字典列表
+        """
+        url = f"{self.BASE_URL}/repos/{repo_owner}/{repo_name}/pulls"
+        params = {"state": state}
+        logger.info(f"Fetching pull requests from {url} with state: {state}")
+
+        try:
+            async with aiohttp.ClientSession(headers=self.headers) as session:
+                async with session.get(url, params=params) as response:
+                    response.raise_for_status()  # 如果状态码是 4xx 或 5xx，则抛出异常
+                    pulls_data = await response.json()
+            
+            # 提取关键信息
+            simplified_pulls = [
+                {
+                    "number": pr.get("number"),
+                    "title": pr.get("title"),
+                    "state": pr.get("state"),
+                    "url": pr.get("html_url"),
+                    "user": pr.get("user", {}).get("login"),
+                }
+                for pr in pulls_data
+            ]
+            logger.success(f"Successfully fetched {len(simplified_pulls)} pull requests.")
+            return simplified_pulls
+
+        except aiohttp.ClientError as e:
+            logger.error(f"Error fetching pull requests for {repo_owner}/{repo_name}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            return []
+
+    async def get_all_files_list(self, repo_owner: str, repo_name: str, branch: str = "main") -> List[str]:
+        """
+        异步获取指定 GitHub 仓库分支中所有文件的完整路径列表。
+        """
+        url = f"{self.BASE_URL}/repos/{repo_owner}/{repo_name}/git/trees/{branch}?recursive=1"
+        logger.info(f"Fetching file list for {repo_owner}/{repo_name} on branch {branch}")
+
+        try:
+            async with aiohttp.ClientSession(headers=self.headers) as session:
+                async with session.get(url) as response:
+                    response.raise_for_status()
+                    tree_data = await response.json()
+            
+            if tree_data.get("truncated"):
+                logger.warning(f"File list for {repo_owner}/{repo_name} is truncated because it exceeds the API limit.")
+
+            if "tree" not in tree_data:
+                logger.error("API response does not contain a 'tree' field.")
+                return []
+
+            file_paths = [item["path"] for item in tree_data["tree"] if item.get("type") == "blob"]
+            logger.success(f"Successfully fetched {len(file_paths)} file paths.")
+            return file_paths
+
+        except aiohttp.ClientError as e:
+            logger.error(f"Error fetching file list for {repo_owner}/{repo_name}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            return []
