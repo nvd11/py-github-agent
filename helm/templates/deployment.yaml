@@ -29,6 +29,8 @@ spec:
               value: {{ .Values.appEnv | quote }}
             - name: GEMINI_API_KEY
               value: {{ .Values.geminiApiKey | quote }}
+            - name: GITHUB_TOKEN
+              value: {{ .Values.githubToken | quote }}
           {{- if .Values.secretName }}
           envFrom:
             - secretRef:
