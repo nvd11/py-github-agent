@@ -4,28 +4,30 @@ import os
 # Add project root to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.llm.gemini_client import GeminiClient
+from src.llm.factory import get_llm
+from loguru import logger
 
-def test_gemini_connection():
-    print("Initializing GeminiClient...")
+def test_llm_factory():
+    """
+    Tests that the LLM factory can correctly instantiate a model.
+    """
+    logger.info("--- Testing LLM Factory ---")
     try:
-        client = GeminiClient()
-        print("GeminiClient initialized successfully.")
-    except ValueError as e:
-        print(f"Failed to initialize GeminiClient: {e}")
-        return
+        llm = get_llm()
+        logger.info(f"LLM factory returned instance of: {type(llm).__name__}")
+        
+        prompt = "Hello, introduce yourself in one sentence."
+        result = llm.invoke(prompt)
 
-    print("\nTesting synchronous generation...")
-    prompt = "Hello, tell me a short joke about programming."
-    response = client.generate_response(prompt)
-    print(f"Prompt: {prompt}")
-    print(f"Response: {response}")
+        assert result is not None
+        assert result.content is not None
+        assert len(result.content) > 0
 
-    # Basic validation
-    if response and "Error" not in response:
-        print("\nSUCCESS: Gemini API is working!")
-    else:
-        print("\nFAILURE: Gemini API returned an error or empty response.")
+        logger.success("LLM factory test passed.")
+        print(f"Response from {type(llm).__name__}: {result.content}")
+
+    except Exception as e:
+        pytest.fail(f"LLM factory test failed: {e}")
 
 if __name__ == "__main__":
-    test_gemini_connection()
+    test_llm_factory()
