@@ -34,3 +34,24 @@ class ListRepoFilesTool(BaseTool):
 
 # 实例化工具，以便在别处导入和使用
 list_repo_files_tool = ListRepoFilesTool()
+
+class GetPrReviewContextInput(BaseModel):
+    """Input for the get_pr_code_review_context tool."""
+    repo_owner: str = Field(description="The owner of the GitHub repository.")
+    repo_name: str = Field(description="The name of the GitHub repository.")
+    pull_number: int = Field(description="The pull request number.")
+
+class GetPrReviewContextTool(BaseTool):
+    name: str = "get_pr_code_review_context"
+    description: str = "Useful for getting full context (diff, original and updated code) of a pull request for code review."
+    args_schema: Type[BaseModel] = GetPrReviewContextInput
+
+    def _run(self, repo_owner: str, repo_name: str, pull_number: int) -> dict:
+        logger.info("Running GetPrReviewContextTool synchronously...")
+        return asyncio.run(self._arun(repo_owner, repo_name, pull_number))
+
+    async def _arun(self, repo_owner: str, repo_name: str, pull_number: int) -> dict:
+        logger.info("Running GetPrReviewContextTool asynchronously...")
+        return await github_service.get_pr_code_review_info(repo_owner, repo_name, pull_number)
+
+get_pr_review_context_tool = GetPrReviewContextTool()

@@ -59,3 +59,39 @@ async def test_get_all_files_list():
 
     except Exception as e:
         pytest.fail(f"get_all_files_list failed with an exception: {e}")
+
+@pytest.mark.asyncio
+async def test_get_pr_code_review_info():
+    """
+    Tests the get_pr_code_review_info method.
+    """
+    logger.info("Testing GitHubService.get_pr_code_review_info...")
+    service = GitHubService()
+    owner = "nvd11"
+    repo = "py-github-agent"
+    pull_number = 2 # A closed PR we know exists
+
+    try:
+        info = await service.get_pr_code_review_info(owner, repo, pull_number)
+        
+        assert info is not None
+        assert "changed_files" in info
+        files = info["changed_files"]
+        assert len(files) > 0
+        
+        # Check structure of the first file
+        first_file = files[0]
+        assert "filename" in first_file
+        assert "status" in first_file
+        assert "diff_info" in first_file
+        # original_content/updated_content might be empty string if added/deleted, but key should exist
+        assert "original_content" in first_file
+        assert "updated_content" in first_file
+        logger.info("type of files:" + type(files).__name__)
+        #logger.info("files info:"+ str(files))
+        logger.success(f"Successfully fetched review info for {len(files)} files.")
+        print(f"First file keys: {list(first_file.keys())}")
+        print(f"First file: {first_file['filename']}, status: {first_file['status']}")
+
+    except Exception as e:
+        pytest.fail(f"get_pr_code_review_info failed with an exception: {e}")

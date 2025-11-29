@@ -72,6 +72,9 @@ steps:
 
         # Get Gemini API Key from Secret Manager
         GEMINI_API_KEY=$$(gcloud secrets versions access latest --secret=gemini-api-key --project=jason-hsbc)
+
+        # Get GitHub Token from Secret Manager
+        GITHUB_TOKEN=$$(gcloud secrets versions access latest --secret=github-token-nvd11 --project=jason-hsbc)
         
         # Get GKE credentials
         gcloud container clusters get-credentials ${_CLUSTER_NAME} --region ${_CLUSTER_LOCATION} --project $PROJECT_ID
@@ -82,6 +85,7 @@ steps:
           --set image.tag=$$NEW_TAG \
           --set service.appName=${_APP_NAME} \
           --set-string geminiApiKey="$$GEMINI_API_KEY" \
+          --set-string githubToken="$$GITHUB_TOKEN" \
           --namespace default
     waitFor: ["Push Docker Image to GAR"]
 

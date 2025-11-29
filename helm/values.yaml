@@ -18,6 +18,7 @@ fullnameOverride: ""
 appEnv: "prod"
 secretName: ""
 geminiApiKey: "" # Will be overridden by Cloud Build from Secret Manager
+githubToken: ""  # Will be overridden by Cloud Build from Secret Manager
 
 podAnnotations: {}
 podLabels: {}

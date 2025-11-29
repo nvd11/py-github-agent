@@ -99,3 +99,102 @@ class GitHubService:
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             return []
+
+
+
+
+
+
+
+
+    async def _fetch_file_content(self, session: aiohttp.ClientSession, repo_owner: str, repo_name: str, path: str, ref: str) -> str:
+        """
+        Helper to fetch raw file content from GitHub API.
+        """
+        url = f"{self.BASE_URL}/repos/{repo_owner}/{repo_name}/contents/{path}"
+        params = {"ref": ref}
+        # Create a new headers dict for this request to include the raw accept header
+        headers = self.headers.copy()
+        headers["Accept"] = "application/vnd.github.v3.raw"
+        
+        try:
+            async with session.get(url, params=params, headers=headers) as response:
+                if response.status == 404:
+                    logger.warning(f"File {path} not found at ref {ref} (possibly deleted or new)")
+                    return ""
+                response.raise_for_status()
+                return await response.text()
+        except Exception as e:
+            logger.error(f"Failed to fetch content for {path} at {ref}: {e}")
+            return ""
+        
+
+
+
+        
+    async def get_pr_code_review_info(self, repo_owner: str, repo_name: str, pull_number: int) -> Dict[str, Any]:
+        """
+        获取 PR 的 Code Review 所需的所有信息：
+        包括变更的文件列表、Diff、以及每个文件的原始内容和修改后内容。
+        """
+        import asyncio
+        
+        logger.info(f"Fetching PR info for {repo_owner}/{repo_name}#{pull_number}")
+        
+        try:
+            async with aiohttp.ClientSession(headers=self.headers) as session:
+                # 1. Get PR details to find base and head SHA
+                pr_url = f"{self.BASE_URL}/repos/{repo_owner}/{repo_name}/pulls/{pull_number}"
+                async with session.get(pr_url) as response:
+                    response.raise_for_status()
+                    pr_data = await response.json()
+                
+                base_sha = pr_data["base"]["sha"]
+                head_sha = pr_data["head"]["sha"]
+                
+                # 2. Get list of changed files
+                files_url = f"{self.BASE_URL}/repos/{repo_owner}/{repo_name}/pulls/{pull_number}/files"
+                async with session.get(files_url) as response:
+                    response.raise_for_status()
+                    files_data = await response.json()
+                
+                logger.info(f"Found {len(files_data)} changed files. Fetching contents...")
+                
+                # 3. Concurrently fetch content for all files
+                tasks = []
+                for file_info in files_data:
+                    filename = file_info["filename"]
+                    status = file_info["status"]
+                    
+                    # Fetch original content (from base)
+                    if status == "added":
+                        original_task = asyncio.create_task(asyncio.sleep(0, result="")) # No original content
+                    else:
+                        original_task = self._fetch_file_content(session, repo_owner, repo_name, filename, base_sha)
+                        
+                    # Fetch updated content (from head)
+                    if status == "removed":
+                        updated_task = asyncio.create_task(asyncio.sleep(0, result="")) # No updated content
+                    else:
+                        updated_task = self._fetch_file_content(session, repo_owner, repo_name, filename, head_sha)
+                        
+                    tasks.append((file_info, original_task, updated_task))
+                
+                results = []
+                for file_info, original_task, updated_task in tasks:
+                    original_content = await original_task
+                    updated_content = await updated_task
+                    
+                    results.append({
+                        "filename": file_info["filename"],
+                        "status": file_info["status"],
+                        "diff_info": file_info.get("patch", ""),
+                        "original_content": original_content,
+                        "updated_content": updated_content
+                    })
+                
+                return {"changed_files": results}
+
+        except Exception as e:
+            logger.error(f"Error getting PR code review info: {e}")
+            return {"changed_files": []}
