@@ -1,5 +1,5 @@
 帮我用langchain的agent框架帮我写一个github ai-agent
-
+之前的尝试我全部清理了
 
 里面包含以下功能
 1.根据用户的自然语言指令, 调用github-api github仓库中list某个repo的所有文件列表
