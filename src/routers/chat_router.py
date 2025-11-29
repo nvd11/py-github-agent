@@ -3,7 +3,7 @@ from loguru import logger
 
 from src.services.llm_service import LLMService
 from src.schemas.chat_schemas import AskRequest, AskResponse
-from src.llm.custom_gemini import CustomGeminiChatModel
+from src.llm.factory import get_llm
 
 # 1. 创建 Router
 router = APIRouter(
@@ -14,7 +14,8 @@ router = APIRouter(
 # --- 依赖注入 ---
 # 这是一个简单的实现，在应用启动时创建一个单例
 # 更复杂的应用可能会使用更高级的依赖注入容器
-llm_service_instance = LLMService(CustomGeminiChatModel())
+llm_model = get_llm()
+llm_service_instance = LLMService(llm_model)
 
 def get_llm_service() -> LLMService:
     return llm_service_instance

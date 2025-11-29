@@ -8,8 +8,9 @@ from langchain_core.callbacks.manager import (
 )
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage
-from langchain_core.outputs import ChatResult, ChatGeneration
+from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
 from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import AsyncIterator
 
 class CustomGeminiChatModel(BaseChatModel):
     """
@@ -68,6 +69,21 @@ class CustomGeminiChatModel(BaseChatModel):
         )
         generations = llm_result.generations[0]
         return ChatResult(generations=generations)
+
+    async def _astream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[ChatGenerationChunk]:
+        """流式生成聊天响应。"""
+        # 直接将调用委托给内部客户端的 astream 方法，
+        # 并将返回的 AIMessageChunk 包装在 ChatGenerationChunk 中。
+        async for chunk in self.client.astream(
+            messages, stop=stop, callbacks=run_manager, **kwargs
+        ):
+            yield ChatGenerationChunk(message=chunk)
 
     @property
     def _llm_type(self) -> str:
