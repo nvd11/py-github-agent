@@ -1,16 +1,16 @@
 
-# import src.configs.config
-from src.llm.custom_gemini import CustomGeminiChatModel
+import src.configs.config
+from src.llm.factory import get_llm
 from src.services.llm_service import LLMService
 from loguru import logger
 import pytest
 def test_llm_invoke():
 
 
-    print("Testing CustomGeminiChatModel.invoke...")
+    print("Testing model factory in sync context...")
     try:
-        custom_llm = CustomGeminiChatModel()
-        result = custom_llm.invoke("Hello, introduce yourself in one sentence.")
+        llm = get_llm()
+        result = llm.invoke("Hello, introduce yourself in one sentence.")
         logger.info("Model response:")
         logger.info(result.content)
     except Exception as e:
@@ -21,11 +21,11 @@ def test_llm_invoke():
 
 @pytest.mark.asyncio
 async def test_invoke():
-    logger.info("Testing LLMService with CustomGeminiChatModel...")
+    logger.info("Testing LLMService with model factory...")
     try:
-        custom_llm = CustomGeminiChatModel()
-        llm_service = LLMService(custom_llm)
-        result = await llm_service.ainvoke("你好吗?")
+        llm = get_llm()
+        llm_service = LLMService(llm)
+        result = await llm_service.ainvoke("Hello, introduce yourself in one sentence.")
         logger.info("LLMService response:")
         logger.info(result.content)
         assert result.content is not None
@@ -37,14 +37,14 @@ async def test_invoke():
 
 @pytest.mark.asyncio
 async def test_astream():
-    logger.info("Testing astream with CustomGeminiChatModel...")
+    logger.info("Testing astream with model factory...")
     full_response = ""
     try:
-        custom_llm = CustomGeminiChatModel()
+        llm = get_llm()
         prompt = "Tell me a short story about a brave robot."
         
         logger.info(f"Streaming prompt: '{prompt}'")
-        async for chunk in custom_llm.astream(prompt):
+        async for chunk in llm.astream(prompt):
             # chunk is an AIMessageChunk object
             print(chunk.content, end="", flush=True)
             full_response += chunk.content
@@ -66,8 +66,8 @@ async def test_llm_service_astream():
     logger.info("Testing LLMService.astream...")
     full_response = ""
     try:
-        custom_llm = CustomGeminiChatModel()
-        llm_service = LLMService(custom_llm)
+        llm = get_llm()
+        llm_service = LLMService(llm)
         prompt = "Write a haiku about Python programming."
         
         logger.info(f"Streaming prompt from service: '{prompt}'")
