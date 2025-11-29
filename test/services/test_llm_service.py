@@ -68,7 +68,7 @@ async def test_llm_service_astream():
     try:
         llm = get_llm()
         llm_service = LLMService(llm)
-        prompt = "Write a haiku about Python programming."
+        prompt = "Tell me a long story about a journey to the center of the Earth."
         
         logger.info(f"Streaming prompt from service: '{prompt}'")
         async for chunk in llm_service.astream(prompt):
@@ -85,3 +85,34 @@ async def test_llm_service_astream():
     except Exception as e:
         logger.error(f"Error during LLMService astream: {e}")
         pytest.fail(f"LLMService astream failed: {e}")
+
+
+@pytest.mark.asyncio
+async def test_native_gemini_astream():
+    """
+    直接测试原始 ChatGoogleGenerativeAI 的 astream 行为，以排除自定义类的影响。
+    """
+    logger.info("--- Testing native ChatGoogleGenerativeAI.astream ---")
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    import os
+
+    full_response = ""
+    try:
+        # 直接实例化原始客户端
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-pro",
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            transport="rest"
+        )
+        prompt = "Tell me a long story about a journey to the center of the Earth."
+        
+        logger.info("Streaming directly from ChatGoogleGenerativeAI...")
+        async for chunk in llm.astream(prompt):
+            print(chunk.content, end="", flush=True)
+            full_response += chunk.content
+        
+        print("\n--- End of Native Stream ---")
+        assert len(full_response) > 0
+
+    except Exception as e:
+        pytest.fail(f"Native Gemini astream test failed: {e}")
