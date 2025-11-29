@@ -44,14 +44,19 @@ class CustomGeminiChatModel(BaseChatModel):
         """
         同步生成聊天响应。
         """
-        # LangChain 的 generate 方法期望 prompts 是一个列表的列表
-        # LLMResult.generations 也是一个列表的列表，每个内部列表对应一个 prompt
+        # 调试日志：记录输入
+        # logger.info(f"Gemini Request Messages: {messages}")
+
         llm_result = self.client.generate(
             [messages], stop=stop, callbacks=run_manager, **kwargs
         )
-        # _generate 需要返回 ChatResult，其 generations 是一个单层列表
-        # 我们只处理了单个 prompt，所以取第一个结果
+        
         generations = llm_result.generations[0]
+        
+        # 调试日志：记录输出
+        if generations:
+            logger.info(f"Gemini Response: {generations[0].text[:200]}...")
+        
         return ChatResult(generations=generations)
 
     async def _agenerate(
