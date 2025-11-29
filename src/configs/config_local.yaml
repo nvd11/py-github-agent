@@ -5,6 +5,10 @@ gcp:
 proxy:
   http: http://10.0.1.223:7890
   https: http://10.0.1.223:7890
+
+llm:
+  provider: "gemini" # 可选项: "deepseek", "gemini"
+
 deepseek:
   api-key: "DEEPSEEK_API_KEY"
   base-url: "https://api.deepseek.com"
