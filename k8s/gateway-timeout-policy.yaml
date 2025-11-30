@@ -1,0 +1,12 @@
+apiVersion: networking.gke.io/v1
+kind: GCPGatewayPolicy
+metadata:
+  name: py-api-gateway-timeout-policy
+  namespace: default
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: py-api-gateway
+  default:
+    timeout: 600s
