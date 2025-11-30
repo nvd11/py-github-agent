@@ -16,7 +16,7 @@ async def test_code_review_agent_e2e():
         pytest.fail(f"Failed to setup test: {e}")
 
     # Target: nvd11/py-github-agent PR #2
-    input_text = "Please review pull request #2 in repository nvd11/py-github-agent."
+    input_text = "Please review pull request #5 in repository nvd11/py-webhook-svc"
     
     try:
         logger.info(f"Invoking agent with input: {input_text}")

@@ -26,11 +26,21 @@ class CustomGeminiChatModel(BaseChatModel):
         if not api_key:
             raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY not found in environment variables.")
         
+        from langchain_google_genai import HarmBlockThreshold, HarmCategory
+        
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+
         self.client = ChatGoogleGenerativeAI(
             model=self.model_name,
             google_api_key=api_key,
             temperature=self.temperature,
             transport="rest",
+            safety_settings=safety_settings,
             **kwargs
         )
 
