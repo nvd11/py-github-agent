@@ -54,7 +54,9 @@ def create_code_review_agent() -> Runnable:
         llm=llm,
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
-        handle_parsing_errors=True, # 既然我们不再强制 JSON，标准的错误处理应该够用了
+        handle_parsing_errors=True,
+        return_intermediate_steps=True, # 开启中间步骤返回，用于调试
+        max_iterations=30, # 增加最大迭代次数以防万一
         agent_kwargs={
             "prefix": CODE_REVIEW_PROMPT
         }
