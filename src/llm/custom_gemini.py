@@ -1,6 +1,10 @@
 import os
-from typing import Any, List, Optional
+import typing
+from typing import Any, List, Optional, Sequence, Callable
 from loguru import logger
+
+from langchain_core.runnables import Runnable
+from langchain_core.tools import BaseTool
 
 from langchain_core.callbacks.manager import (
     AsyncCallbackManagerForLLMRun,
@@ -26,11 +30,21 @@ class CustomGeminiChatModel(BaseChatModel):
         if not api_key:
             raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY not found in environment variables.")
         
+        from langchain_google_genai import HarmBlockThreshold, HarmCategory
+        
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+
         self.client = ChatGoogleGenerativeAI(
             model=self.model_name,
             google_api_key=api_key,
             temperature=self.temperature,
             transport="rest",
+            safety_settings=safety_settings,
             **kwargs
         )
 
@@ -89,6 +103,17 @@ class CustomGeminiChatModel(BaseChatModel):
             messages, stop=stop, callbacks=run_manager, **kwargs
         ):
             yield ChatGenerationChunk(message=chunk)
+
+    def bind_tools(
+        self,
+        tools: Sequence[typing.Dict[str, Any] | type | Callable | BaseTool],
+        *,
+        tool_choice: str | None = None,
+        **kwargs: Any,
+    ) -> Runnable:
+        """Bind tools to the model for tool calling."""
+        # Delegate to the underlying client's bind_tools method
+        return self.client.bind_tools(tools, tool_choice=tool_choice, **kwargs)
 
     @property
     def _llm_type(self) -> str:

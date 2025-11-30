@@ -49,9 +49,28 @@ class CodeReviewService:
         
         # 3. Call Agent
         try:
-            # Use ainvoke directly
-            result = await self.agent_executor.ainvoke({"input": input_text})
-            output = result.get("output", "")
+            # Use correct message format for new agent architecture
+            from langchain_core.messages import HumanMessage
+            result = await self.agent_executor.ainvoke({
+                "messages": [HumanMessage(content=input_text)]
+            })
+            
+            # Extract output from messages
+            messages = result.get("messages", [])
+            if messages:
+                # Get the last AI message content
+                last_message = messages[-1]
+                if hasattr(last_message, 'content'):
+                    # If content is a list, extract text part
+                    if isinstance(last_message.content, list) and len(last_message.content) > 0:
+                        # Extract first text block content
+                        output = last_message.content[0].get('text', '') if isinstance(last_message.content[0], dict) else str(last_message.content[0])
+                    else:
+                        output = str(last_message.content)
+                else:
+                    output = str(last_message)
+            else:
+                output = ""
             
             if not output:
                 # Log the full result for debugging purposes
