@@ -112,5 +112,3 @@ spec:
     - path:
         type: PathPrefix
         value: /py-github-agent
-    timeouts:
-      request: 600s
