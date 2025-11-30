@@ -54,7 +54,9 @@ class CodeReviewService:
             output = result.get("output", "")
             
             if not output:
-                return "Error: Agent returned empty response."
+                # Log the full result for debugging purposes
+                logger.error(f"Agent returned empty output. Full result object: {result}")
+                return f"Error: Agent returned empty response. Internal result state: {result}"
                 
             return output
 
