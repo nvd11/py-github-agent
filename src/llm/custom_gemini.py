@@ -1,6 +1,10 @@
 import os
-from typing import Any, List, Optional
+import typing
+from typing import Any, List, Optional, Sequence, Callable
 from loguru import logger
+
+from langchain_core.runnables import Runnable
+from langchain_core.tools import BaseTool
 
 from langchain_core.callbacks.manager import (
     AsyncCallbackManagerForLLMRun,
@@ -8,8 +12,9 @@ from langchain_core.callbacks.manager import (
 )
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage
-from langchain_core.outputs import ChatResult, ChatGeneration
+from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
 from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import AsyncIterator
 
 class CustomGeminiChatModel(BaseChatModel):
     """
@@ -25,11 +30,21 @@ class CustomGeminiChatModel(BaseChatModel):
         if not api_key:
             raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY not found in environment variables.")
         
+        from langchain_google_genai import HarmBlockThreshold, HarmCategory
+        
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+
         self.client = ChatGoogleGenerativeAI(
             model=self.model_name,
             google_api_key=api_key,
             temperature=self.temperature,
             transport="rest",
+            safety_settings=safety_settings,
             **kwargs
         )
 
@@ -43,14 +58,19 @@ class CustomGeminiChatModel(BaseChatModel):
         """
         同步生成聊天响应。
         """
-        # LangChain 的 generate 方法期望 prompts 是一个列表的列表
-        # LLMResult.generations 也是一个列表的列表，每个内部列表对应一个 prompt
+        # 调试日志：记录输入
+        # logger.info(f"Gemini Request Messages: {messages}")
+
         llm_result = self.client.generate(
             [messages], stop=stop, callbacks=run_manager, **kwargs
         )
-        # _generate 需要返回 ChatResult，其 generations 是一个单层列表
-        # 我们只处理了单个 prompt，所以取第一个结果
+        
         generations = llm_result.generations[0]
+        
+        # 调试日志：记录输出
+        if generations:
+            logger.info(f"Gemini Response: {generations[0].text[:200]}...")
+        
         return ChatResult(generations=generations)
 
     async def _agenerate(
@@ -68,6 +88,32 @@ class CustomGeminiChatModel(BaseChatModel):
         )
         generations = llm_result.generations[0]
         return ChatResult(generations=generations)
+
+    async def _astream(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[AsyncCallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[ChatGenerationChunk]:
+        """流式生成聊天响应。"""
+        # 直接将调用委托给内部客户端的 astream 方法，
+        # 并将返回的 AIMessageChunk 包装在 ChatGenerationChunk 中。
+        async for chunk in self.client.astream(
+            messages, stop=stop, callbacks=run_manager, **kwargs
+        ):
+            yield ChatGenerationChunk(message=chunk)
+
+    def bind_tools(
+        self,
+        tools: Sequence[typing.Dict[str, Any] | type | Callable | BaseTool],
+        *,
+        tool_choice: str | None = None,
+        **kwargs: Any,
+    ) -> Runnable:
+        """Bind tools to the model for tool calling."""
+        # Delegate to the underlying client's bind_tools method
+        return self.client.bind_tools(tools, tool_choice=tool_choice, **kwargs)
 
     @property
     def _llm_type(self) -> str:

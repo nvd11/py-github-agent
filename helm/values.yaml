@@ -18,6 +18,10 @@ fullnameOverride: ""
 appEnv: "prod"
 secretName: ""
 geminiApiKey: "" # Will be overridden by Cloud Build from Secret Manager
+githubToken: ""  # Will be overridden by Cloud Build from Secret Manager
+
+# Backend service timeout configuration (seconds)
+backendTimeout: "300"
 
 podAnnotations: {}
 podLabels: {}
