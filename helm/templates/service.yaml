@@ -12,6 +12,9 @@ metadata:
     {{- end }}
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
+    {{- if .Values.backendTimeout }}
+    networking.gke.io/backend-timeout: {{ .Values.backendTimeout | quote }}
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:

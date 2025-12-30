@@ -1,5 +1,5 @@
 帮我用langchain的agent框架帮我写一个github ai-agent
-
+之前的尝试我全部清理了
 
 里面包含以下功能
 1.根据用户的自然语言指令, 调用github-api github仓库中list某个repo的所有文件列表
@@ -18,3 +18,9 @@
 帮我编写另一个llmmodel实现, 基于deekseek, apikey在.env里有
 
 在config_<env>.yaml中添加一个option项, 选择系统使用哪一个model
+
+
+对于 test_llm_service_astream
+为何我切换使用gemini时 , 输出是一次性输出到console的? 并没有streaming output的打字机效果?
+
+而使用deepseek时是正常的

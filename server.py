@@ -8,6 +8,7 @@ import sys
 
 # Import the routers
 from src.routers import chat_router
+from src.routers import review_router
 
 # Get root_path from an environment variable. Defaults to "/python-template-app" if not set.
 root_path = os.getenv("ROOT_PATH", "/py-github-agent")
@@ -31,6 +32,7 @@ app.add_middleware(
 
 # Include the routers
 app.include_router(chat_router.router)
+app.include_router(review_router.router)
 
 
 @app.get("/")

@@ -1,6 +1,9 @@
+import src.configs.config
+from loguru import logger
+
 from langchain_core.language_models.chat_models import BaseChatModel
 from src.configs.config import yaml_configs
-from loguru import logger
+
 
 def get_llm() -> BaseChatModel:
     """
